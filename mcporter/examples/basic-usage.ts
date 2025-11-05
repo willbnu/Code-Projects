@@ -36,7 +36,7 @@ async function main() {
     console.log(result.text());
 
     console.log("\nResult as JSON:");
-    const data = result.json();
+    const data = result.json() as any;
     console.log(JSON.stringify(data, null, 2));
 
     // Extract specific information

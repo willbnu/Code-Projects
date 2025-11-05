@@ -40,14 +40,14 @@ async function main() {
     // Step 2: Get document information
     console.log("2. Getting document info...");
     const docInfo = await figma.call("get_document_info");
-    const docData = docInfo.json();
+    const docData = docInfo.json() as any;
     console.log(`   Document: ${docData?.name || "Unknown"}`);
     console.log(`   Pages: ${docData?.pages?.length || 0}\n`);
 
     // Step 3: Get current selection
     console.log("3. Getting current selection...");
     const selection = await figma.call("get_selection");
-    const selectionData = selection.json();
+    const selectionData = selection.json() as any;
     
     if (selectionData?.selection && selectionData.selection.length > 0) {
       console.log(`   Selected nodes: ${selectionData.selection.length}`);
