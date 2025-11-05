@@ -17,6 +17,11 @@
         "-y",
         "chrome-devtools-mcp@latest"
       ]
+    },
+    "figma": {
+      "description": "Figma MCP - Design automation and Figma integration via WebSocket",
+      "command": "bunx",
+      "args": ["cursor-talk-to-figma-mcp@latest"]
     }
   },
   "imports": ["cursor", "claude-code", "claude-desktop", "codex"]

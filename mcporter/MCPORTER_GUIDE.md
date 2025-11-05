@@ -608,35 +608,142 @@ await runtime.close();
 
 ### Integrating with Figma MCP
 
-```json
-{
-  "mcpServers": {
-    "figma": {
-      "command": "bunx",
-      "args": ["cursor-talk-to-figma-mcp@latest"]
-    }
-  }
+Figma MCP requires a WebSocket server to communicate with Figma. Here's how to set it up:
+
+#### Prerequisites
+
+1. **Start the WebSocket server**:
+   ```bash
+   cd "Figma MCP"
+   bun socket
+   ```
+   This runs on `ws://localhost:3055`
+
+2. **Open Figma and run the plugin**:
+   - In Figma, go to Plugins > Development > Cursor MCP Plugin
+   - Run the plugin to connect it to the WebSocket server
+   - Make sure you have a Figma document open
+
+3. **Configure in mcporter.json**:
+   ```json
+   {
+     "mcpServers": {
+       "figma": {
+         "description": "Figma MCP - Design automation and Figma integration",
+         "command": "bunx",
+         "args": ["cursor-talk-to-figma-mcp@latest"]
+       }
+     }
+   }
+   ```
+
+#### TypeScript API Usage
+
+```typescript
+import { createRuntime, createServerProxy } from "mcporter";
+
+const runtime = await createRuntime({
+  configPath: "./config/mcporter.json"
+});
+
+const figma = createServerProxy(runtime, "figma");
+
+try {
+  // Step 1: Join channel (REQUIRED before other operations)
+  await figma.joinChannel({ channelId: "my-channel" });
+  
+  // Step 2: Get document info
+  const docInfo = await figma.getDocumentInfo();
+  console.log(docInfo.json());
+  
+  // Step 3: Get current selection
+  const selection = await figma.getSelection();
+  console.log(selection.json());
+  
+  // Step 4: Create a frame
+  await figma.createFrame({
+    x: 100,
+    y: 100,
+    width: 400,
+    height: 300,
+    name: "Container",
+    layoutMode: "VERTICAL",
+    paddingTop: 20,
+    paddingRight: 20,
+    paddingBottom: 20,
+    paddingLeft: 20
+  });
+  
+  // Step 5: Create text
+  await figma.createText({
+    x: 150,
+    y: 150,
+    content: "Hello from MCPorter!",
+    fontSize: 24,
+    fontFamily: "Inter",
+    name: "MCPorter Text"
+  });
+  
+  // Step 6: Read design details
+  const design = await figma.readMyDesign();
+  console.log(design.text());
+  
+} finally {
+  await runtime.close();
 }
 ```
 
-```typescript
-const figma = createServerProxy(runtime, "figma");
+#### CLI Usage
 
-// Join channel
-await figma.joinChannel({ channelId: "my-channel" });
+```bash
+# List available Figma tools
+npx mcporter list figma
 
-// Get document info
-const docInfo = await figma.getDocumentInfo();
+# Join a channel (required first)
+npx mcporter call figma join_channel '{"channelId": "my-channel"}'
 
-// Create a frame
-await figma.createFrame({
-  x: 100,
-  y: 100,
-  width: 400,
-  height: 300,
-  name: "Container"
-});
+# Get document info
+npx mcporter call figma get_document_info
+
+# Get current selection
+npx mcporter call figma get_selection
+
+# Create a rectangle
+npx mcporter call figma create_rectangle '{
+  "x": 100,
+  "y": 100,
+  "width": 200,
+  "height": 150,
+  "name": "My Rectangle"
+}'
+
+# Create a frame with auto-layout
+npx mcporter call figma create_frame '{
+  "x": 100,
+  "y": 100,
+  "width": 400,
+  "height": 300,
+  "name": "Container",
+  "layoutMode": "VERTICAL"
+}'
 ```
+
+#### Important Notes
+
+- **WebSocket Server Required**: The Figma MCP server communicates with Figma via WebSocket, so the server must be running (`bun socket` in the Figma MCP directory)
+- **Join Channel First**: Always call `join_channel` before other operations - this connects the MCP server to the Figma plugin via WebSocket
+- **Figma Plugin Active**: The Figma plugin must be running and connected to the WebSocket server
+- **40+ Tools Available**: Figma MCP provides 40+ tools for design automation including:
+  - Reading & Querying (document info, selection, node details)
+  - Creation (rectangles, frames, text, components)
+  - Modification (colors, positioning, sizing)
+  - Auto-Layout (layout modes, padding, alignment)
+  - Text Operations (scan, set, batch update)
+  - Annotations (create, update, scan)
+  - Prototyping (reactions, connectors)
+  - Components & Styles (instances, overrides)
+
+See [Figma MCP Documentation](../Figma%20MCP/readme.md) for complete tool reference.
 
 ### Using with Existing MCP Servers
 
