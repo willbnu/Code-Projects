@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "context7": {
+      "description": "Context7 documentation MCP - Access library documentation",
+      "baseUrl": "https://mcp.context7.com/mcp",
+      "headers": {
+        "Authorization": "$env:CONTEXT7_API_KEY"
+      }
+    },
+    "chrome-devtools": {
+      "description": "Chrome DevTools MCP - Browser automation and debugging",
+      "command": "bash",
+      "args": [
+        "scripts/mcp_stdio_wrapper.sh",
+        "env",
+        "npx",
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
+    }
+  },
+  "imports": ["cursor", "claude-code", "claude-desktop", "codex"]
+}
+

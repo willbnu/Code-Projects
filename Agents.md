@@ -16,6 +16,12 @@ This workspace contains AI-powered agents for design automation and web browser 
   - [Key Features](#key-features-1)
   - [Configuration](#configuration)
   - [Cloud Agent Integration](#cloud-agent-integration-1)
+- [MCPorter CLI Tool](#mcporter-cli-tool)
+  - [Quick Start](#quick-start-2)
+  - [Key Features](#key-features-2)
+  - [CLI Usage](#cli-usage)
+  - [TypeScript API](#typescript-api-1)
+  - [Cloud Agent Integration](#cloud-agent-integration-2)
 - [Workspace Setup](#workspace-setup)
 - [Quick Reference](#quick-reference)
 - [Best Practices](#best-practices)
@@ -32,6 +38,7 @@ This workspace is designed as a collaborative environment for AI agents working 
 
 1. **Figma MCP Agent** - Real-time design automation and Figma integration
 2. **Magnitude Web Browser Agent** - AI-powered browser testing and automation
+3. **MCPorter CLI Tool** - TypeScript runtime and CLI for MCP server interactions
 
 ---
 
@@ -367,6 +374,193 @@ Magnitude is cloud-ready for agent workflows:
 
 ---
 
+## MCPorter CLI Tool
+
+MCPorter is a TypeScript runtime and CLI generator that makes it easy to interact with Model Context Protocol (MCP) servers. It provides both command-line tools and a TypeScript API for calling MCP tools, making it perfect for automation, agent workflows, and building custom CLIs.
+
+### Quick Start
+
+1. **Install MCPorter**:
+   ```bash
+   cd mcporter
+   npm install
+   ```
+
+2. **Create configuration** (`config/mcporter.json`):
+   ```json
+   {
+     "mcpServers": {
+       "context7": {
+         "baseUrl": "https://mcp.context7.com/mcp",
+         "headers": {
+           "Authorization": "$env:CONTEXT7_API_KEY"
+         }
+       }
+     }
+   }
+   ```
+
+3. **List available tools**:
+   ```bash
+   npx mcporter list
+   ```
+
+4. **Call a tool**:
+   ```bash
+   npx mcporter call context7 resolve-library-id react
+   ```
+
+### Key Features
+
+- **Zero-config CLI** - Quick tool execution from command line
+- **TypeScript API** - Composable runtime for complex workflows
+- **Server Proxies** - Ergonomic API with automatic naming conversion
+- **OAuth Support** - Automatic browser launches and token management
+- **Config Import** - Automatically merges Cursor/Claude Code configs
+- **Standalone CLIs** - Generate single-purpose command-line tools
+- **Type Safety** - Full TypeScript support with validation
+
+### CLI Usage
+
+#### List Tools
+```bash
+# List all configured servers
+npx mcporter list
+
+# List tools for a specific server
+npx mcporter list context7
+
+# Show tool schemas
+npx mcporter list context7 --schema
+```
+
+#### Call Tools
+```bash
+# Basic call
+npx mcporter call context7 resolve-library-id '{"query": "react"}'
+
+# With positional arguments
+npx mcporter call linear searchIssues owner=ENG status=InProgress
+
+# Tail log files
+npx mcporter call signoz query --tail-log
+```
+
+#### OAuth Authentication
+```bash
+# Authenticate with a server
+npx mcporter auth vercel
+
+# Reset credentials
+npx mcporter auth vercel --reset
+```
+
+#### Generate Standalone CLIs
+```bash
+# Generate a CLI for a server
+npx mcporter generate-cli \
+  --command https://mcp.context7.com/mcp \
+  --compile
+
+# Use the generated CLI
+./context7 list-tools
+./context7 resolve-library-id react
+```
+
+### TypeScript API
+
+#### Basic Usage
+```typescript
+import { createRuntime, createServerProxy } from "mcporter";
+
+const runtime = await createRuntime({
+  configPath: "./config/mcporter.json"
+});
+
+const context7 = createServerProxy(runtime, "context7");
+
+// Call tools with camelCase method names
+const result = await context7.resolveLibraryId("react");
+
+// Access results
+console.log(result.text());      // Plain text
+console.log(result.markdown());  // Markdown content
+console.log(result.json());      // Parsed JSON
+
+await runtime.close();
+```
+
+#### Composable Workflows
+```typescript
+async function getLibraryDocs(libraryName: string) {
+  const runtime = await createRuntime({ configPath: "./config/mcporter.json" });
+  const context7 = createServerProxy(runtime, "context7");
+  
+  // Resolve library ID
+  const resolved = await context7.resolveLibraryId(libraryName);
+  const libraryId = extractLibraryId(resolved);
+  
+  // Fetch documentation
+  const docs = await context7.getLibraryDocs(libraryId);
+  
+  await runtime.close();
+  return docs.markdown();
+}
+```
+
+### Configuration
+
+MCPorter reads from `config/mcporter.json`:
+
+```json
+{
+  "mcpServers": {
+    "server-name": {
+      "baseUrl": "https://mcp.example.com/mcp",
+      "headers": {
+        "Authorization": "$env:API_KEY"
+      }
+    },
+    "stdio-server": {
+      "command": "bash",
+      "args": ["npx", "-y", "some-mcp-server@latest"]
+    }
+  },
+  "imports": ["cursor", "claude-code"]
+}
+```
+
+MCPorter automatically imports configurations from:
+- Cursor (`~/.cursor/mcp.json`)
+- Claude Code
+- Claude Desktop
+- Codex
+
+### Cloud Agent Integration
+
+MCPorter is designed for cloud-based agent workflows:
+
+- **Connection Pooling**: Runtime caches connections for efficiency
+- **Retry Logic**: Automatic retries for transient failures
+- **OAuth Token Caching**: Tokens stored in `~/.mcporter/<server>/`
+- **Stateless Operations**: All operations are stateless
+- **Type Safety**: Full TypeScript support for agent code generation
+
+**For Cloud Deployment**:
+- Configure MCP servers in `config/mcporter.json`
+- Use environment variables for API keys
+- Generate standalone CLIs for frequently used servers
+- Use runtime API for complex workflows
+
+### Documentation
+
+For comprehensive documentation, see:
+- **[MCPORTER_GUIDE.md](./mcporter/MCPORTER_GUIDE.md)** - Complete usage guide
+- **[Examples](./mcporter/examples/)** - TypeScript usage examples
+- **[Configuration](./mcporter/config/mcporter.json)** - Example configuration
+
+---
+
 ## Workspace Setup
 
 ### Git Repository
@@ -390,6 +584,13 @@ Code Projects/
 │       └── magnitude/
 │           ├── example.mag.ts
 │           └── magnitude.config.ts
+├── mcporter/           # MCPorter CLI tool
+│   ├── config/
+│   │   └── mcporter.json         # MCP server configuration
+│   ├── examples/
+│   │   ├── basic-usage.ts       # Basic usage example
+│   │   └── composable-workflow.ts  # Workflow example
+│   └── MCPORTER_GUIDE.md        # Complete usage guide
 └── Agents.md          # This file
 ```
 
@@ -413,13 +614,20 @@ Code Projects/
    npm install
    ```
 
-4. **Verify installations**:
+4. **Setup MCPorter**:
+   ```bash
+   cd mcporter
+   npm install
+   ```
+
+5. **Verify installations**:
    - Figma MCP: Run `bun socket` and verify WebSocket server starts
    - Magnitude: Run `npm test` and verify tests execute
+   - MCPorter: Run `npx mcporter list` and verify CLI works
 
 ### Environment Requirements
 
-- **Node.js** (for Magnitude)
+- **Node.js** (for Magnitude and MCPorter)
 - **Bun** (for Figma MCP)
 - **Figma Desktop** (optional, for Figma plugin)
 - **Git** (for version control)
@@ -457,6 +665,26 @@ npm test
 npx magnitude-test path/to/test.mag.ts
 ```
 
+### MCPorter Commands
+
+```bash
+# List available tools
+npx mcporter list
+
+# Call a tool
+npx mcporter call <server> <tool> [args]
+
+# Authenticate (OAuth)
+npx mcporter auth <server>
+
+# Generate standalone CLI
+npx mcporter generate-cli --command <url> --compile
+
+# Run examples
+npx tsx examples/basic-usage.ts
+npx tsx examples/composable-workflow.ts
+```
+
 ### Common Workflows
 
 #### Starting a Figma Automation Session
@@ -469,6 +697,12 @@ npx magnitude-test path/to/test.mag.ts
 1. Configure `magnitude.config.ts` with target URL
 2. Write test using `agent.act()` and `agent.check()`
 3. Run test: `npm test`
+
+#### Using MCPorter
+1. Configure `config/mcporter.json` with MCP servers
+2. List available tools: `npx mcporter list`
+3. Call tools: `npx mcporter call <server> <tool>`
+4. Use TypeScript API for complex workflows
 
 ---
 
@@ -494,6 +728,17 @@ npx magnitude-test path/to/test.mag.ts
 5. **Keep tests independent** - each test should be able to run standalone
 6. **Use configuration** for environment-specific settings
 
+### MCPorter
+
+1. **Always close runtime** when done to free resources
+2. **Use server proxies** for better ergonomics than direct tool calls
+3. **Handle errors gracefully** with try-catch blocks
+4. **Use TypeScript types** for result parsing and validation
+5. **Cache runtime** for multiple calls instead of creating new ones
+6. **Generate CLIs** for frequently used MCP servers
+7. **Use environment variables** for API keys and sensitive data
+8. **Check authentication status** before making tool calls
+
 ### Cloud Agent Collaboration
 
 1. **Document agent capabilities** clearly in this file
@@ -517,6 +762,11 @@ npx magnitude-test path/to/test.mag.ts
 - [Official Documentation](https://docs.magnitude.run)
 - [Core Concepts](https://docs.magnitude.run/core-concepts/building-test-cases)
 - [Configuration Guide](https://docs.magnitude.run/customizing/configuration)
+
+### MCPorter
+- [GitHub Repository](https://github.com/steipete/mcporter)
+- [MCPORTER_GUIDE.md](./mcporter/MCPORTER_GUIDE.md) - Complete usage guide
+- [Examples](./mcporter/examples/) - TypeScript usage examples
 
 ---
 
