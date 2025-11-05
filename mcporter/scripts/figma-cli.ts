@@ -13,8 +13,7 @@
  */
 
 import { createRuntime, createServerProxy } from "mcporter";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { existsSync } from "fs";
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -71,8 +70,7 @@ async function main() {
     
     try {
       // Check if test config exists
-      const fs = await import("fs");
-      if (fs.existsSync(testConfig)) {
+      if (existsSync(testConfig)) {
         configPath = testConfig;
       } else {
         configPath = mainConfig;
@@ -91,7 +89,8 @@ async function main() {
         command: {
           kind: "stdio",
           command: "bunx",
-          args: ["cursor-talk-to-figma-mcp@latest"]
+          args: ["cursor-talk-to-figma-mcp@latest"],
+          cwd: process.cwd()
         }
       }
     ]
