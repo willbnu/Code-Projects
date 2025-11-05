@@ -25,9 +25,11 @@ async function main() {
     const tools = await runtime.listTools("context7");
     console.log(tools.map(t => `  - ${t.name}`).join("\n"));
 
-    // Call a tool
+    // Call a tool using the call method
     console.log("\nResolving library ID for 'react':");
-    const result = await context7.resolveLibraryId("react");
+    const result = await context7.call("resolve-library-id", {
+      args: { query: "react" }
+    });
 
     // Access results in different formats
     console.log("\nResult as text:");
@@ -48,7 +50,9 @@ async function main() {
         
         // Fetch documentation
         console.log("\nFetching documentation...");
-        const docs = await context7.getLibraryDocs(libraryId);
+        const docs = await context7.call("get-library-docs", {
+          args: { libraryId }
+        });
         console.log("\nDocumentation (first 500 chars):");
         console.log(docs.markdown()?.substring(0, 500) + "...");
       }

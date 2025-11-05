@@ -28,7 +28,9 @@ async function getLibraryDocs(
   const context7 = createServerProxy(runtime, "context7");
 
   // Step 1: Resolve library ID
-  const resolved = await context7.resolveLibraryId(libraryName);
+  const resolved = await context7.call("resolve-library-id", {
+    args: { query: libraryName }
+  });
   const data = resolved.json<LibraryInfo>();
 
   // Step 2: Extract library ID
@@ -45,7 +47,9 @@ async function getLibraryDocs(
   }
 
   // Step 3: Fetch documentation
-  const docs = await context7.getLibraryDocs(libraryId);
+  const docs = await context7.call("get-library-docs", {
+    args: { libraryId }
+  });
 
   return {
     libraryId,

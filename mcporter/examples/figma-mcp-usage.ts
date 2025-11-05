@@ -32,19 +32,21 @@ async function main() {
     const channelId = `channel-${Date.now()}`;
     console.log(`1. Joining channel: ${channelId}`);
     
-    const joinResult = await figma.joinChannel({ channelId });
+    const joinResult = await figma.call("join_channel", {
+      args: { channelId }
+    });
     console.log(`   Result: ${joinResult.text()}\n`);
 
     // Step 2: Get document information
     console.log("2. Getting document info...");
-    const docInfo = await figma.getDocumentInfo();
+    const docInfo = await figma.call("get_document_info");
     const docData = docInfo.json();
     console.log(`   Document: ${docData?.name || "Unknown"}`);
     console.log(`   Pages: ${docData?.pages?.length || 0}\n`);
 
     // Step 3: Get current selection
     console.log("3. Getting current selection...");
-    const selection = await figma.getSelection();
+    const selection = await figma.call("get_selection");
     const selectionData = selection.json();
     
     if (selectionData?.selection && selectionData.selection.length > 0) {
@@ -60,24 +62,26 @@ async function main() {
     // Step 4: Read design details (if something is selected)
     if (selectionData?.selection && selectionData.selection.length > 0) {
       console.log("4. Reading design details...");
-      const design = await figma.readMyDesign();
+      const design = await figma.call("read_my_design");
       console.log(`   Design data: ${design.text()?.substring(0, 200)}...\n`);
     }
 
     // Step 5: Create a frame (example)
     console.log("5. Creating a frame...");
     try {
-      const frameResult = await figma.createFrame({
-        x: 100,
-        y: 100,
-        width: 400,
-        height: 300,
-        name: "MCPorter Test Frame",
-        layoutMode: "VERTICAL",
-        paddingTop: 20,
-        paddingRight: 20,
-        paddingBottom: 20,
-        paddingLeft: 20
+      const frameResult = await figma.call("create_frame", {
+        args: {
+          x: 100,
+          y: 100,
+          width: 400,
+          height: 300,
+          name: "MCPorter Test Frame",
+          layoutMode: "VERTICAL",
+          paddingTop: 20,
+          paddingRight: 20,
+          paddingBottom: 20,
+          paddingLeft: 20
+        }
       });
       console.log(`   Frame created: ${frameResult.text()}\n`);
     } catch (error) {
@@ -87,13 +91,15 @@ async function main() {
     // Step 6: Create text element
     console.log("6. Creating text element...");
     try {
-      const textResult = await figma.createText({
-        x: 150,
-        y: 150,
-        content: "Hello from MCPorter!",
-        fontSize: 24,
-        fontFamily: "Inter",
-        name: "MCPorter Text"
+      const textResult = await figma.call("create_text", {
+        args: {
+          x: 150,
+          y: 150,
+          content: "Hello from MCPorter!",
+          fontSize: 24,
+          fontFamily: "Inter",
+          name: "MCPorter Text"
+        }
       });
       console.log(`   Text created: ${textResult.text()}\n`);
     } catch (error) {
