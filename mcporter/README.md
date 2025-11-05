@@ -59,10 +59,26 @@ const runtime = await createRuntime({
 });
 
 const context7 = createServerProxy(runtime, "context7");
-const result = await context7.resolveLibraryId("react");
+const result = await context7.call("resolve-library-id", {
+  args: { query: "react" }
+});
 
 console.log(result.text());
 await runtime.close();
+```
+
+### Figma MCP Helper Script
+
+For Figma MCP, use the helper script that maintains persistent connections:
+
+```bash
+# Install dependencies
+npm install -D tsx
+
+# Run Figma commands
+npx tsx scripts/figma-cli.ts get_document_info
+npx tsx scripts/figma-cli.ts get_selection
+bun scripts/figma-cli.ts create_rectangle x=100 y=100 width=200 height=150
 ```
 
 See [examples/](./examples/) for more complete examples.

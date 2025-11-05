@@ -15,5 +15,8 @@
   "type": "commonjs",
   "dependencies": {
     "mcporter": "^0.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
   }
 }

@@ -695,44 +695,85 @@ try {
 
 #### CLI Usage
 
+**Note:** Each `mcporter call` creates a new connection, so channel joins don't persist. Use the helper script below for multiple commands.
+
+**Direct CLI (one command at a time):**
 ```bash
 # List available Figma tools
-npx mcporter list figma
+npx mcporter list TalkToFigma
 
 # Join a channel (required first)
-npx mcporter call figma join_channel '{"channelId": "my-channel"}'
+npx mcporter call TalkToFigma.join_channel channel=my-channel
 
-# Get document info
-npx mcporter call figma get_document_info
+# Get document info (must join channel first in same command session)
+npx mcporter call TalkToFigma.get_document_info
+```
 
-# Get current selection
-npx mcporter call figma get_selection
+**Recommended: Use the Helper Script**
 
-# Create a rectangle
-npx mcporter call figma create_rectangle '{
-  "x": 100,
-  "y": 100,
-  "width": 200,
-  "height": 150,
-  "name": "My Rectangle"
-}'
+For proper persistent connections, use the `figma-cli.ts` helper script:
+
+```bash
+# Single command (auto-joins channel)
+npx tsx scripts/figma-cli.ts get_document_info
+
+# With arguments
+npx tsx scripts/figma-cli.ts create_rectangle x=100 y=100 width=200 height=150 name="Test"
+
+# Get selection
+npx tsx scripts/figma-cli.ts get_selection
 
 # Create a frame with auto-layout
-npx mcporter call figma create_frame '{
-  "x": 100,
-  "y": 100,
-  "width": 400,
-  "height": 300,
-  "name": "Container",
-  "layoutMode": "VERTICAL"
-}'
+npx tsx scripts/figma-cli.ts create_frame x=100 y=100 width=400 height=300 name="Container" layoutMode="VERTICAL"
 ```
+
+**Or with Bun:**
+```bash
+bun scripts/figma-cli.ts get_document_info
+bun scripts/figma-cli.ts get_selection
+```
+
+The helper script:
+- Automatically joins a channel before each command
+- Maintains connection state
+- Supports key=value argument format
+- Provides better error messages
+
+#### Helper Script
+
+A helper script is available that maintains persistent connections and auto-joins channels:
+
+**Location:** `mcporter/scripts/figma-cli.ts`
+
+**Usage:**
+```bash
+# Install tsx if needed
+npm install -D tsx
+
+# Run commands
+npx tsx scripts/figma-cli.ts <tool-name> [key=value...]
+
+# Examples
+npx tsx scripts/figma-cli.ts get_document_info
+npx tsx scripts/figma-cli.ts get_selection
+npx tsx scripts/figma-cli.ts create_rectangle x=100 y=100 width=200 height=150 name="Test"
+
+# Or use Bun
+bun scripts/figma-cli.ts get_document_info
+```
+
+**Benefits:**
+- Auto-joins channel before each command
+- Maintains persistent connection
+- Simple key=value argument format
+- Better error handling
 
 #### Important Notes
 
-- **WebSocket Server Required**: The Figma MCP server communicates with Figma via WebSocket, so the server must be running (`bun socket` in the Figma MCP directory)
-- **Join Channel First**: Always call `join_channel` before other operations - this connects the MCP server to the Figma plugin via WebSocket
-- **Figma Plugin Active**: The Figma plugin must be running and connected to the WebSocket server
+- **WebSocket Server Required**: The Figma MCP server communicates with Figma via WebSocket, so the server must be running (`bunx cursor-talk-to-figma-socket`)
+- **Join Channel First**: Always call `join_channel` before other operations - this connects the MCP server to the Figma plugin via WebSocket. The helper script does this automatically.
+- **Figma Plugin Active**: The Figma plugin must be running and connected to the WebSocket server on the same channel
+- **Channel Parameter**: Use `channel` (not `channelId`) when calling `join_channel` directly
 - **40+ Tools Available**: Figma MCP provides 40+ tools for design automation including:
   - Reading & Querying (document info, selection, node details)
   - Creation (rectangles, frames, text, components)
